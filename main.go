@@ -14,11 +14,14 @@ func main() {
   app := wails.CreateApp(&wails.AppConfig{
     Width:  1024,
     Height: 768,
-    Title:  "smapi-manager",
+    Title:  "SMAPI Mod Manager",
     JS:     js,
     CSS:    css,
     Colour: "#131313",
   })
   app.Bind(backend.Basic)
-  app.Run()
+  err := app.Run()
+  if err != nil {
+    panic(err)
+  }
 }
