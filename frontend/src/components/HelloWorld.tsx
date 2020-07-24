@@ -6,7 +6,7 @@ export default function () {
   const [result, setResult] = useState<string>('')
   const handleOpenModal = () => {
     setShowModal(true)
-    window.backend.Basic().then(setResult)
+    window.backend.Initialize().then(setResult)
   }
   const handleCloseModal = () => setShowModal(false)
   return (

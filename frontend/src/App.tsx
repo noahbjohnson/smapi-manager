@@ -2,10 +2,11 @@ import React from 'react'
 import './App.css'
 import HelloWorld from './components/HelloWorld'
 
-const logo = require('./logo.png')
+const logo = require('./media/SDV_logo_3x.png')
 
 interface Backend {
     Basic: () => Promise<string>
+    Initialize: () => Promise<string>
 }
 
 declare global {
