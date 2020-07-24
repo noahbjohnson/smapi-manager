@@ -124,7 +124,7 @@ func initializeViper() (err error) {
 	return
 }
 
-// setup the config and such
+// Initialize sets up the config and such
 func Initialize() string {
 	log.Println("Initializing the logger")
 	logger, err := zap.NewDevelopment()
@@ -146,4 +146,14 @@ func Initialize() string {
 		sugar.Fatal("Fatal error reading config file", err)
 	}
 	return configDir.Name()
+}
+
+// HasSMAPI returns if SMAPI is installed
+func HasSMAPI() bool {
+	return viper.GetBool(hasSmapiKey)
+}
+
+// GameDir returns the game dir from the config
+func GameDir() string {
+	return viper.GetString(gameDirKey)
 }

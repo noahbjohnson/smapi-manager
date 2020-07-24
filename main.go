@@ -19,8 +19,9 @@ func main() {
 		CSS:    css,
 		Colour: "#131313",
 	})
-	app.Bind(backend.Basic)
 	app.Bind(backend.Initialize)
+	app.Bind(backend.HasSMAPI)
+	app.Bind(backend.GameDir)
 	err := app.Run()
 	if err != nil {
 		panic(err)
