@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {useRef, useState} from 'react'
-import {Button, Uploader} from "rsuite";
+import {useState} from 'react'
+import {Button} from "rsuite";
 import UploadModal from "./UploadModal";
 
 export default function () {
@@ -8,8 +8,8 @@ export default function () {
     return (
         <div className="App">
             <h1>Loaded</h1>
-            <Button onClick={()=>setShowUploadModal(true)}>Add Mod Files</Button>
-            <UploadModal show={showUploadModal} hide={()=>setShowUploadModal(false)}/>
+            <Button onClick={() => setShowUploadModal(true)}>Add Mod Files</Button>
+            <UploadModal show={showUploadModal} hide={() => setShowUploadModal(false)}/>
         </div>
     )
 }

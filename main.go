@@ -1,29 +1,32 @@
 package main
 
 import (
-	"github.com/leaanthony/mewn"
-	"github.com/wailsapp/wails"
+	"github.com/webview/webview"
+	"net/http"
 	"smapi-manager/backend"
 )
 
+func setupRoutes() {
+	http.HandleFunc("/upload", backend.UploadFile)
+	http.Handle("/", http.FileServer(http.Dir("./frontend/build")))
+}
+
 func main() {
+	const addr = ":53494"
+	setupRoutes()
 
-	js := mewn.String("./frontend/build/static/js/main.js")
-	css := mewn.String("./frontend/build/static/css/main.css")
+	go func() {
+		err := http.ListenAndServe(addr, nil)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
-	app := wails.CreateApp(&wails.AppConfig{
-		Width:  1024,
-		Height: 768,
-		Title:  "SMAPI Mod Manager",
-		JS:     js,
-		CSS:    css,
-		Colour: "#131313",
-	})
-	app.Bind(backend.Initialize)
-	app.Bind(backend.HasSMAPI)
-	app.Bind(backend.GameDir)
-	err := app.Run()
-	if err != nil {
-		panic(err)
-	}
+	debug := true
+	w := webview.New(debug)
+	defer w.Destroy()
+	w.SetTitle("Minimal webview example")
+	w.SetSize(800, 600, webview.HintNone)
+	w.Navigate("http://localhost" + addr)
+	w.Run()
 }
