@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/noahbjohnson/smapi-manager/backend"
+	_ "github.com/noahbjohnson/smapi-manager/statik"
 	"github.com/rakyll/statik/fs"
 	"github.com/webview/webview"
 	"log"
 	"net/http"
-	"smapi-manager/backend"
-	_ "smapi-manager/statik"
 )
 
 func setupRoutes() {

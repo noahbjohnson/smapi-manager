@@ -1,4 +1,4 @@
-module smapi-manager
+module github.com/noahbjohnson/smapi-manager
 
 go 1.14
 
