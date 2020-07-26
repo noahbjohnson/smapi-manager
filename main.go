@@ -16,11 +16,13 @@ func setupRoutes() {
 	}
 
 	http.HandleFunc("/upload", backend.UploadFile)
+	http.HandleFunc("/smapi", backend.GetSMAPI)
 	http.Handle("/", http.FileServer(statikFS))
 }
 
 func main() {
 	const addr = ":53494"
+	backend.Initialize()
 	setupRoutes()
 
 	go func() {

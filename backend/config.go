@@ -1,18 +1,18 @@
 package backend
 
 import (
+	"fmt"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 )
 
 var AppFs = afero.NewOsFs()
-
-var sugar *zap.SugaredLogger
 
 const (
 	smapiSubfolder      = "smapi-internal"
@@ -80,7 +80,7 @@ func getGameDirectory() (path string) {
 
 func hasSMAPI() (bool, error) {
 	smapiFolder := filepath.Join(getGameDirectory(), smapiSubfolder)
-	sugar.Debug("checking for smapi at: ", smapiFolder)
+	Sugar.Debug("checking for smapi at: ", smapiFolder)
 	return afero.Exists(AppFs, smapiFolder)
 }
 
@@ -102,19 +102,19 @@ func initializeViper() (err error) {
 	viper.SetDefault(gameDirKey, defaultGameDir)
 
 	if configExists, _ := afero.Exists(AppFs, configFilePath); configExists {
-		sugar.Debug("Config exists, reading from file")
+		Sugar.Debug("Config exists, reading from file")
 		viper.SetDefault(firstRunKey, false)
 		err = viper.ReadInConfig()
 		if err != nil {
 			return err
 		}
-		sugar.Debug("values loaded: ", viper.AllSettings())
+		Sugar.Debug("values loaded: ", viper.AllSettings())
 		err = viper.WriteConfig()
 		if err != nil {
 			return err
 		}
 	} else {
-		sugar.Debug("Config file not found, creating file")
+		Sugar.Debug("Config file not found, creating file")
 		viper.SetDefault(firstRunKey, true)
 		err = viper.SafeWriteConfig()
 		if err != nil {
@@ -132,18 +132,18 @@ func Initialize() string {
 		log.Fatalln("Could not start logger", err)
 	}
 	defer logger.Sync()
-	sugar = logger.Sugar()
+	Sugar = logger.Sugar()
 
-	sugar.Info("Loading config directory")
+	Sugar.Info("Loading config directory")
 	configDir, err := getOrCreateConfigDir(AppFs)
 	if err != nil {
-		sugar.Fatal("Could not open config directory", err)
+		Sugar.Fatal("Could not open config directory", err)
 	}
 
-	sugar.Info("Initializing config")
+	Sugar.Info("Initializing config")
 	err = initializeViper()
 	if err != nil {
-		sugar.Fatal("Fatal error reading config file", err)
+		Sugar.Fatal("Fatal error reading config file", err)
 	}
 	return configDir.Name()
 }
@@ -156,4 +156,14 @@ func HasSMAPI() bool {
 // GameDir returns the game dir from the config
 func GameDir() string {
 	return viper.GetString(gameDirKey)
+}
+
+func GetSMAPI(w http.ResponseWriter, r *http.Request) {
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+	var responseCode uint8 = 0
+	if HasSMAPI() {
+		responseCode = 1
+	}
+	Sugar.Infof("responding to smapi call with status %d", responseCode)
+	_, _ = fmt.Fprintf(w, "%d", responseCode)
 }

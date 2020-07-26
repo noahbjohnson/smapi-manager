@@ -3,18 +3,15 @@ import './App.css'
 import 'rsuite/dist/styles/rsuite-default.css';
 import Splash from "./components/Splash";
 import Landing from "./components/Landing";
-
-async function HasSMAPI(): Promise<boolean> {
-    return true
-}
+import {hasSMAPI} from "./api";
 
 function App() {
     let [showSplash, setShowSplash] = useState<boolean>(true)
     let [splashMessage, setSplashMessage] = useState<FunctionComponentElement<any>>(<h3>Loading...</h3>)
 
     useEffect(() => {
-        HasSMAPI().then(hasSmapi => {
-            if (hasSmapi) {
+        hasSMAPI().then(smapiStatus => {
+            if (smapiStatus) {
                 setTimeout(() => setShowSplash(false), 1000)
             } else {
                 setSplashMessage(<h3>"Please <a

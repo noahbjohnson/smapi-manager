@@ -2,15 +2,11 @@ import * as React from 'react'
 import {useState} from 'react'
 import {Button} from 'rsuite'
 import Dropzone from 'react-dropzone'
+import {uploadFile} from "../api";
 
 export default function () {
     const [uploadQueue, setUploadQueue] = useState<File[]>([])
 
-    const uploadFile = async (file: File): Promise<void> => {
-        const formData = new FormData()
-        formData.append('zip', file)
-        await fetch('http://localhost:53494/upload', {method: 'POST', body: formData})
-    }
 
     const uploadFiles = async (): Promise<void> => {
         await Promise.all(uploadQueue.map(file => {
@@ -28,27 +24,20 @@ export default function () {
             uploadQueue.push(file)
             setUploadQueue(uploadQueue.map(f => f))
         }
-        refresh()
     }
 
     const addToQueue = (files: File | File[]): void => {
         if (Array.isArray(files)) {
             files.forEach(addOne)
-            refresh()
         } else {
             addOne(files)
-            refresh()
         }
         setUploadQueue(uploadQueue)
-        refresh()
     }
 
     const hide = () => {
         setTimeout(() => setUploadQueue([]), 500)
     }
-
-    const [remountCount, setRemountCount] = useState(0)
-    const refresh = () => setRemountCount(remountCount + 1)
 
     return (
         <div className="App">
@@ -60,7 +49,7 @@ export default function () {
                     <section>
                         <div {...getRootProps()}>
                             <input {...getInputProps()} />
-                            <p>Drag 'n' drop some files here, or click to select files</p>
+                            <h1>Drag 'n' drop some files here, or click to select files</h1>
                         </div>
                     </section>
                 )}
