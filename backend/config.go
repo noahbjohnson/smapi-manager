@@ -45,6 +45,17 @@ func getOrCreateConfigDir(fs afero.Fs) (directory afero.File, err error) {
 			return
 		}
 	}
+	zipDir := filepath.Join(dirName, "zips/")
+	hasZipDir, err := afero.DirExists(fs, zipDir)
+	if err != nil {
+		return
+	}
+	if !hasZipDir {
+		err = fs.Mkdir(zipDir, 0777)
+		if err != nil {
+			return
+		}
+	}
 	return fs.Open(dirName)
 }
 
