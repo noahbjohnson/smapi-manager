@@ -1,14 +1,22 @@
 package main
 
 import (
+	"github.com/rakyll/statik/fs"
 	"github.com/webview/webview"
+	"log"
 	"net/http"
 	"smapi-manager/backend"
+	_ "smapi-manager/statik"
 )
 
 func setupRoutes() {
+	statikFS, err := fs.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	http.HandleFunc("/upload", backend.UploadFile)
-	http.Handle("/", http.FileServer(http.Dir("./frontend/build")))
+	http.Handle("/", http.FileServer(statikFS))
 }
 
 func main() {
