@@ -113,16 +113,45 @@ func getModDirs(modsDir string) []string {
 	return modDirs
 }
 
+func fixJSON(inJson []byte) []byte {
+	var mapTrailer = regexp.MustCompile(",(\\s*})")
+	var arrayTrailer = regexp.MustCompile(",(\\s*])")
+	var leadingSpace = regexp.MustCompile("\\A(\\s*)")
+	var newline = regexp.MustCompile("\r\n")
+
+	jsonString := string(inJson[:])
+	jsonString = mapTrailer.ReplaceAllString(jsonString, `$1`)
+	jsonString = arrayTrailer.ReplaceAllString(jsonString, `$1`)
+	jsonString = leadingSpace.ReplaceAllString(jsonString, ``)
+	// DOS newlines
+	jsonString = newline.ReplaceAllString(jsonString, "\n")
+	// byte order mark
+	jsonString = strings.TrimLeft(jsonString, "\ufeff")
+	return []byte(jsonString)
+}
+
 func loadMods(modDirs []string) (mods []Mod) {
 	for _, dir := range modDirs {
 		jsonFilePath := filepath.Join(dir, "manifest.json")
-		jsonFile, _ := afero.ReadFile(AppFs, jsonFilePath)
-		metadata := new(ModMetadata)
-		_ = json.Unmarshal(jsonFile, metadata)
+		jsonFile, err := afero.ReadFile(AppFs, jsonFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("parsing ", jsonFilePath, " with length ", len(jsonFile))
+		cleanJSON := fixJSON(jsonFile)
+		metadata := ModMetadata{}
+		err = json.Unmarshal(cleanJSON, &metadata)
+		if err != nil {
+			log.Printf("error decoding json manifest: %v", err)
+			if e, ok := err.(*json.SyntaxError); ok {
+				log.Printf("syntax error at byte offset %d", e.Offset)
+			}
+			panic(err)
+		}
 		mods = append(mods, Mod{
 			Directory: dir,
 			Enabled:   isEnabled(dir),
-			Metadata:  *metadata,
+			Metadata:  metadata,
 		})
 	}
 	return mods
