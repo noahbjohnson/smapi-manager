@@ -17,6 +17,7 @@ func setupRoutes() {
 
 	http.HandleFunc("/upload", backend.UploadFile)
 	http.HandleFunc("/smapi", backend.GetSMAPI)
+	http.HandleFunc("/mods", backend.EnumerateMods)
 	http.Handle("/", http.FileServer(statikFS))
 }
 

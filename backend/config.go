@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -19,10 +20,10 @@ const (
 	configDirFolder     = "smapi_manager"
 	configFileName      = "config"
 	configFileExtension = "json"
-
-	gameDirKey  = "GameDir"
-	firstRunKey = "FirstRun"
-	hasSmapiKey = "HasSmapi"
+	gameDirKey          = "GameDir"
+	firstRunKey         = "FirstRun"
+	hasSmapiKey         = "HasSmapi"
+	modsSubPath         = "Mods/"
 )
 
 func getConfigDir() string {
@@ -177,4 +178,14 @@ func GetSMAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	Sugar.Infof("responding to smapi call with status %d", responseCode)
 	_, _ = fmt.Fprintf(w, "%d", responseCode)
+}
+
+func EnumerateMods(w http.ResponseWriter, r *http.Request) {
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+
+	err := json.NewEncoder(w).Encode(LoadMods(GameDir()))
+	if err != nil {
+		panic(err)
+	}
+	//_, _ = fmt.Fprintf(w, "%v", responseJson)
 }

@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/gopherjs/gopherjs v0.0.0-20190411002643-bd77b112433e // indirect
+	github.com/karrick/godirwalk v1.15.6
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/afero v1.3.2
 	github.com/spf13/viper v1.7.0
