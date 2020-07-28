@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const manifestFileName = "manifest.json"
+
 // For a content pack, ContentPackFor specifies which mod can read it.
 type ContactPackRef struct {
 	UniqueID       string `json:"UniqueID"`
@@ -66,13 +68,48 @@ type Mod struct {
 	Metadata  ModMetadata `json:"metadata"`
 }
 
+func (m *Mod) enable() error {
+	currentDir := filepath.Dir(m.Directory)
+	if strings.HasPrefix(currentDir, ".") {
+		newDir := strings.TrimLeft(currentDir, ".")
+		if strings.HasSuffix(currentDir, ".") {
+			newDir = strings.TrimRight(newDir, ".")
+		}
+		parent := strings.TrimRight(m.Directory, currentDir)
+		newPath := filepath.Join(parent, newDir)
+		err := AppFs.Rename(m.Directory, newPath)
+		if err != nil {
+			return err
+		}
+		m.Enabled = true
+	}
+	return nil
+}
+
+func (m *Mod) disable() error {
+	currentDir := filepath.Dir(m.Directory)
+	if !strings.HasPrefix(currentDir, ".") {
+		newPath := filepath.Join(strings.TrimRight(m.Directory, currentDir), "."+currentDir)
+		err := AppFs.Rename(m.Directory, newPath)
+		if err != nil {
+			return err
+		}
+		m.Enabled = false
+	}
+	return nil
+}
+
+func appendManifestFilePath(dir string) string {
+	return filepath.Join(dir, manifestFileName)
+}
+
 func isModDir(dirName string) bool {
 	dir, _ := afero.ReadDir(AppFs, dirName)
 	if endsWithNumber(dirName) {
 		return false
 	}
 	for i := range dir {
-		if dir[i].Name() == "manifest.json" {
+		if dir[i].Name() == manifestFileName {
 			return true
 		}
 	}
@@ -132,7 +169,7 @@ func fixJSON(inJson []byte) []byte {
 
 func loadMods(modDirs []string) (mods []Mod) {
 	for _, dir := range modDirs {
-		jsonFilePath := filepath.Join(dir, "manifest.json")
+		jsonFilePath := appendManifestFilePath(dir)
 		jsonFile, err := afero.ReadFile(AppFs, jsonFilePath)
 		if err != nil {
 			log.Fatal(err)
