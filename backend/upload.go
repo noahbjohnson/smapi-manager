@@ -23,7 +23,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	Sugar.Debugf("File Size: %+v\n", handler.Size)
 	Sugar.Debugf("MIME Header: %+v\n", handler.Header)
 
-	var fileUrl = filepath.Join(getConfigDir(), "zips/", handler.Filename)
+	var fileUrl = filepath.Join(getConfigPathString(), "zips/", handler.Filename)
 	fmt.Println("Writing to: " + fileUrl)
 	fileBytes, err := ioutil.ReadAll(file)
 	errr := afero.WriteFile(AppFs, fileUrl, fileBytes, 0777)

@@ -10,7 +10,19 @@ import (
 	"strings"
 )
 
-const manifestFileName = "manifest.json"
+const (
+	mapTrailingCommaRegex   = ",(\\s*})"
+	arrayTrailingCommaRegex = ",(\\s*])"
+	leadingSpaceRegex       = "\\A(\\s*)"
+	dosNewLineRegex         = "\r\n"
+	endsWithDigitRegex      = "^.*\\d$"
+	disablePrefix           = "."
+	disableSuffix           = "."
+	nbsp                    = "\ufeff"
+	unixNewLine             = "\n"
+	emptyString             = ``
+	firstCaptureGroup       = `$1`
+)
 
 // For a content pack, ContentPackFor specifies which mod can read it.
 type ContactPackRef struct {
@@ -62,6 +74,7 @@ type ModMetadata struct {
 	UpdateKeys   []string        `json:"UpdateKeys"`
 }
 
+// Mod is a a SMAPI mod
 type Mod struct {
 	Directory string      `json:"directory"`
 	Enabled   bool        `json:"enabled"`
@@ -70,10 +83,10 @@ type Mod struct {
 
 func (m *Mod) enable() error {
 	currentDir := filepath.Dir(m.Directory)
-	if strings.HasPrefix(currentDir, ".") {
-		newDir := strings.TrimLeft(currentDir, ".")
-		if strings.HasSuffix(currentDir, ".") {
-			newDir = strings.TrimRight(newDir, ".")
+	if strings.HasPrefix(currentDir, disablePrefix) {
+		newDir := strings.TrimLeft(currentDir, disablePrefix)
+		if strings.HasSuffix(currentDir, disableSuffix) {
+			newDir = strings.TrimRight(newDir, disableSuffix)
 		}
 		parent := strings.TrimRight(m.Directory, currentDir)
 		newPath := filepath.Join(parent, newDir)
@@ -88,8 +101,8 @@ func (m *Mod) enable() error {
 
 func (m *Mod) disable() error {
 	currentDir := filepath.Dir(m.Directory)
-	if !strings.HasPrefix(currentDir, ".") {
-		newPath := filepath.Join(strings.TrimRight(m.Directory, currentDir), "."+currentDir)
+	if !strings.HasPrefix(currentDir, disablePrefix) {
+		newPath := filepath.Join(strings.TrimRight(m.Directory, currentDir), disablePrefix+currentDir)
 		err := AppFs.Rename(m.Directory, newPath)
 		if err != nil {
 			return err
@@ -99,8 +112,12 @@ func (m *Mod) disable() error {
 	return nil
 }
 
+func (m *Mod) refreshEnabled() {
+	m.Enabled = isEnabled(m.Directory)
+}
+
 func appendManifestFilePath(dir string) string {
-	return filepath.Join(dir, manifestFileName)
+	return filepath.Join(dir, ManifestFileName)
 }
 
 func isModDir(dirName string) bool {
@@ -109,7 +126,7 @@ func isModDir(dirName string) bool {
 		return false
 	}
 	for i := range dir {
-		if dir[i].Name() == manifestFileName {
+		if dir[i].Name() == ManifestFileName {
 			return true
 		}
 	}
@@ -117,7 +134,7 @@ func isModDir(dirName string) bool {
 }
 
 func endsWithNumber(dirName string) bool {
-	digitTest, err := regexp.Compile("^.*\\d$")
+	digitTest, err := regexp.Compile(endsWithDigitRegex)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -126,7 +143,7 @@ func endsWithNumber(dirName string) bool {
 
 func isEnabled(dirName string) bool {
 	dir := filepath.Dir(dirName)
-	if strings.HasPrefix(dir, ".") {
+	if strings.HasPrefix(dir, disablePrefix) {
 		return false
 	}
 	return true
@@ -150,20 +167,21 @@ func getModDirs(modsDir string) []string {
 	return modDirs
 }
 
+// fixJSON fixes trailing commas and encoding issues in JSON
 func fixJSON(inJson []byte) []byte {
-	var mapTrailer = regexp.MustCompile(",(\\s*})")
-	var arrayTrailer = regexp.MustCompile(",(\\s*])")
-	var leadingSpace = regexp.MustCompile("\\A(\\s*)")
-	var newline = regexp.MustCompile("\r\n")
+	var mapTrailer = regexp.MustCompile(mapTrailingCommaRegex)
+	var arrayTrailer = regexp.MustCompile(arrayTrailingCommaRegex)
+	var leadingSpace = regexp.MustCompile(leadingSpaceRegex)
+	var newline = regexp.MustCompile(dosNewLineRegex)
 
 	jsonString := string(inJson[:])
-	jsonString = mapTrailer.ReplaceAllString(jsonString, `$1`)
-	jsonString = arrayTrailer.ReplaceAllString(jsonString, `$1`)
-	jsonString = leadingSpace.ReplaceAllString(jsonString, ``)
+	jsonString = mapTrailer.ReplaceAllString(jsonString, firstCaptureGroup)
+	jsonString = arrayTrailer.ReplaceAllString(jsonString, firstCaptureGroup)
+	jsonString = leadingSpace.ReplaceAllString(jsonString, emptyString)
 	// DOS newlines
-	jsonString = newline.ReplaceAllString(jsonString, "\n")
+	jsonString = newline.ReplaceAllString(jsonString, unixNewLine)
 	// byte order mark
-	jsonString = strings.TrimLeft(jsonString, "\ufeff")
+	jsonString = strings.TrimLeft(jsonString, nbsp)
 	return []byte(jsonString)
 }
 
@@ -194,8 +212,9 @@ func loadMods(modDirs []string) (mods []Mod) {
 	return mods
 }
 
+// LoadMods searches the provided game directory for mods and parses them into Mod structures
 func LoadMods(gameDir string) []Mod {
-	modDir := filepath.Join(gameDir, "Mods/")
+	modDir := filepath.Join(gameDir, ModsSubPath)
 	modDirs := getModDirs(modDir)
 	mods := loadMods(modDirs)
 	return mods

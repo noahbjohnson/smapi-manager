@@ -23,10 +23,11 @@ const (
 	gameDirKey          = "GameDir"
 	firstRunKey         = "FirstRun"
 	hasSmapiKey         = "HasSmapi"
-	modsSubPath         = "Mods/"
+	ModsSubPath         = "Mods/"
+	ManifestFileName    = "manifest.json"
 )
 
-func getConfigDir() string {
+func getConfigPathString() string {
 	userConfigDir, err := os.UserConfigDir()
 	if err != nil {
 		panic(err)
@@ -35,7 +36,7 @@ func getConfigDir() string {
 }
 
 func getOrCreateConfigDir(fs afero.Fs) (directory afero.File, err error) {
-	dirName := getConfigDir()
+	dirName := getConfigPathString()
 	hasConfigDir, err := afero.DirExists(fs, dirName)
 	if err != nil {
 		return
@@ -97,7 +98,7 @@ func hasSMAPI() (bool, error) {
 }
 
 func initializeViper() (err error) {
-	configDir := getConfigDir()
+	configDir := getConfigPathString()
 	configFilePath := filepath.Join(configDir, configFileName) + "." + configFileExtension
 	viper.SetConfigName(configFileName)
 	viper.SetConfigType(configFileExtension)
@@ -187,5 +188,4 @@ func EnumerateMods(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	//_, _ = fmt.Fprintf(w, "%v", responseJson)
 }
