@@ -8,94 +8,8 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
-	"runtime"
 )
-
-var AppFs = afero.NewOsFs()
-
-const (
-	smapiSubfolder      = "smapi-internal"
-	configDirFolder     = "smapi_manager"
-	configFileName      = "config"
-	configFileExtension = "json"
-	gameDirKey          = "GameDir"
-	firstRunKey         = "FirstRun"
-	hasSmapiKey         = "HasSmapi"
-	ModsSubPath         = "Mods/"
-	ManifestFileName    = "manifest.json"
-)
-
-func getConfigPathString() string {
-	userConfigDir, err := os.UserConfigDir()
-	if err != nil {
-		panic(err)
-	}
-	return filepath.Join(userConfigDir, configDirFolder)
-}
-
-func getOrCreateConfigDir(fs afero.Fs) (directory afero.File, err error) {
-	dirName := getConfigPathString()
-	hasConfigDir, err := afero.DirExists(fs, dirName)
-	if err != nil {
-		return
-	}
-	if !hasConfigDir {
-		err = fs.Mkdir(dirName, 0777)
-		if err != nil {
-			return
-		}
-	}
-	zipDir := filepath.Join(dirName, "zips/")
-	hasZipDir, err := afero.DirExists(fs, zipDir)
-	if err != nil {
-		return
-	}
-	if !hasZipDir {
-		err = fs.Mkdir(zipDir, 0777)
-		if err != nil {
-			return
-		}
-	}
-	return fs.Open(dirName)
-}
-
-func getGameDirectory() (path string) {
-	userConfigDir, _ := os.UserConfigDir()
-	userDir, _ := os.UserHomeDir()
-	switch runtime.GOOS {
-	case "darwin":
-		if exists, _ := afero.Exists(AppFs, "/Applications/Stardew Valley.app"); exists {
-			path = "/Applications/Stardew Valley.app/Contents/MacOS"
-		} else {
-			path = filepath.Join(userConfigDir, "Steam/SteamApps/common/Stardew Valley/Contents/MacOS")
-		}
-	case "android":
-		path = "storage/emulated/0/StardewValley/"
-	case "linux":
-		if exists, _ := afero.Exists(AppFs, "GOGGames/StardewValley"); exists {
-			path = filepath.Join(userDir, "GOGGames/StardewValley/game")
-		} else {
-			path = filepath.Join(userDir, ".local/share/Steam/steamapps/common/Stardew Valley")
-		}
-	case "windows":
-		if exists, _ := afero.Exists(AppFs, "/GOG Games"); exists {
-			path = "/GOG Games/Stardew Valley"
-		} else if exists, _ := afero.Exists(AppFs, "/Program Files (x86)/GOG Galaxy/Games/Stardew Valley"); exists {
-			path = "/Program Files (x86)/GOG Galaxy/Games/Stardew Valley"
-		} else {
-			path = "/Program Files (x86)/Steam/steamapps/common/Stardew Valley"
-		}
-	}
-	return path
-}
-
-func hasSMAPI() (bool, error) {
-	smapiFolder := filepath.Join(getGameDirectory(), smapiSubfolder)
-	Sugar.Debug("checking for smapi at: ", smapiFolder)
-	return afero.Exists(AppFs, smapiFolder)
-}
 
 func initializeViper() (err error) {
 	configDir := getConfigPathString()
@@ -113,6 +27,7 @@ func initializeViper() (err error) {
 
 	viper.Set(hasSmapiKey, smapi)
 	viper.SetDefault(gameDirKey, defaultGameDir)
+	viper.SetDefault(modsKey, []Mod{})
 
 	if configExists, _ := afero.Exists(AppFs, configFilePath); configExists {
 		Sugar.Debug("Config exists, reading from file")
@@ -135,30 +50,6 @@ func initializeViper() (err error) {
 		}
 	}
 	return
-}
-
-// Initialize sets up the config and such
-func Initialize() string {
-	log.Println("Initializing the logger")
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		log.Fatalln("Could not start logger", err)
-	}
-	defer logger.Sync()
-	Sugar = logger.Sugar()
-
-	Sugar.Info("Loading config directory")
-	configDir, err := getOrCreateConfigDir(AppFs)
-	if err != nil {
-		Sugar.Fatal("Could not open config directory", err)
-	}
-
-	Sugar.Info("Initializing config")
-	err = initializeViper()
-	if err != nil {
-		Sugar.Fatal("Fatal error reading config file", err)
-	}
-	return configDir.Name()
 }
 
 // HasSMAPI returns if SMAPI is installed
@@ -188,4 +79,32 @@ func EnumerateMods(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// Initialize sets up the config and such
+func Initialize() string {
+	log.Println("Initializing the logger")
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalln("Could not start logger", err)
+	}
+	defer logger.Sync()
+	Sugar = logger.Sugar()
+
+	Sugar.Info("Loading config directory")
+	configDir, err := getOrCreateConfigDir(AppFs)
+	if err != nil {
+		Sugar.Fatal("Could not open config directory", err)
+	}
+
+	Sugar.Info("Initializing config")
+	err = initializeViper()
+	if err != nil {
+		Sugar.Fatal("Fatal error reading config file", err)
+	}
+
+	//Sugar.Info("Loading Mods")
+	//mods := LoadMods(GameDir())
+
+	return configDir.Name()
 }

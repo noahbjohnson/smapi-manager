@@ -6,22 +6,7 @@ import (
 	"github.com/spf13/afero"
 	"log"
 	"path/filepath"
-	"regexp"
 	"strings"
-)
-
-const (
-	mapTrailingCommaRegex   = ",(\\s*})"
-	arrayTrailingCommaRegex = ",(\\s*])"
-	leadingSpaceRegex       = "\\A(\\s*)"
-	dosNewLineRegex         = "\r\n"
-	endsWithDigitRegex      = "^.*\\d$"
-	disablePrefix           = "."
-	disableSuffix           = "."
-	nbsp                    = "\ufeff"
-	unixNewLine             = "\n"
-	emptyString             = ``
-	firstCaptureGroup       = `$1`
 )
 
 // For a content pack, ContentPackFor specifies which mod can read it.
@@ -78,12 +63,13 @@ type ModMetadata struct {
 type Mod struct {
 	Directory string      `json:"directory"`
 	Enabled   bool        `json:"enabled"`
+	Managed   bool        `json:"managed"`
 	Metadata  ModMetadata `json:"metadata"`
 }
 
 func (m *Mod) enable() error {
 	currentDir := filepath.Dir(m.Directory)
-	if strings.HasPrefix(currentDir, disablePrefix) {
+	if strings.HasPrefix(currentDir, disablePrefix) && m.Managed {
 		newDir := strings.TrimLeft(currentDir, disablePrefix)
 		if strings.HasSuffix(currentDir, disableSuffix) {
 			newDir = strings.TrimRight(newDir, disableSuffix)
@@ -101,7 +87,7 @@ func (m *Mod) enable() error {
 
 func (m *Mod) disable() error {
 	currentDir := filepath.Dir(m.Directory)
-	if !strings.HasPrefix(currentDir, disablePrefix) {
+	if !strings.HasPrefix(currentDir, disablePrefix) && m.Managed {
 		newPath := filepath.Join(strings.TrimRight(m.Directory, currentDir), disablePrefix+currentDir)
 		err := AppFs.Rename(m.Directory, newPath)
 		if err != nil {
@@ -112,44 +98,32 @@ func (m *Mod) disable() error {
 	return nil
 }
 
-func (m *Mod) refreshEnabled() {
+func (m *Mod) RefreshEnabled() {
 	m.Enabled = isEnabled(m.Directory)
 }
 
-func appendManifestFilePath(dir string) string {
-	return filepath.Join(dir, ManifestFileName)
+type ModManager struct {
+	Mods    []Mod  `json:"mods"`
+	GameDir string `json:"game_dir"`
 }
 
-func isModDir(dirName string) bool {
-	dir, _ := afero.ReadDir(AppFs, dirName)
-	if endsWithNumber(dirName) {
-		return false
-	}
-	for i := range dir {
-		if dir[i].Name() == ManifestFileName {
-			return true
-		}
-	}
-	return false
+func (m *ModManager) LoadModsFromFS() {
+	m.Mods = LoadMods(m.GameDir)
 }
 
-func endsWithNumber(dirName string) bool {
-	digitTest, err := regexp.Compile(endsWithDigitRegex)
-	if err != nil {
-		log.Fatal(err)
+func (m *ModManager) RefreshEnabled() {
+	for _, mod := range m.Mods {
+		mod.RefreshEnabled()
 	}
-	return digitTest.MatchString(dirName)
 }
 
-func isEnabled(dirName string) bool {
-	dir := filepath.Dir(dirName)
-	if strings.HasPrefix(dir, disablePrefix) {
-		return false
+func (m *ModManager) modsDir() {
+	for _, mod := range m.Mods {
+		mod.RefreshEnabled()
 	}
-	return true
 }
 
-func getModDirs(modsDir string) []string {
+func loadMods(modsDir string) (mods []Mod) {
 	var modDirs []string
 	err := godirwalk.Walk(modsDir, &godirwalk.Options{
 		Callback: func(osPathname string, de *godirwalk.Dirent) error {
@@ -164,28 +138,6 @@ func getModDirs(modsDir string) []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return modDirs
-}
-
-// fixJSON fixes trailing commas and encoding issues in JSON
-func fixJSON(inJson []byte) []byte {
-	var mapTrailer = regexp.MustCompile(mapTrailingCommaRegex)
-	var arrayTrailer = regexp.MustCompile(arrayTrailingCommaRegex)
-	var leadingSpace = regexp.MustCompile(leadingSpaceRegex)
-	var newline = regexp.MustCompile(dosNewLineRegex)
-
-	jsonString := string(inJson[:])
-	jsonString = mapTrailer.ReplaceAllString(jsonString, firstCaptureGroup)
-	jsonString = arrayTrailer.ReplaceAllString(jsonString, firstCaptureGroup)
-	jsonString = leadingSpace.ReplaceAllString(jsonString, emptyString)
-	// DOS newlines
-	jsonString = newline.ReplaceAllString(jsonString, unixNewLine)
-	// byte order mark
-	jsonString = strings.TrimLeft(jsonString, nbsp)
-	return []byte(jsonString)
-}
-
-func loadMods(modDirs []string) (mods []Mod) {
 	for _, dir := range modDirs {
 		jsonFilePath := appendManifestFilePath(dir)
 		jsonFile, err := afero.ReadFile(AppFs, jsonFilePath)
@@ -215,7 +167,6 @@ func loadMods(modDirs []string) (mods []Mod) {
 // LoadMods searches the provided game directory for mods and parses them into Mod structures
 func LoadMods(gameDir string) []Mod {
 	modDir := filepath.Join(gameDir, ModsSubPath)
-	modDirs := getModDirs(modDir)
-	mods := loadMods(modDirs)
+	mods := loadMods(modDir)
 	return mods
 }

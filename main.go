@@ -26,6 +26,7 @@ func main() {
 	backend.Initialize()
 	setupRoutes()
 
+	// Start API server in background
 	go func() {
 		err := http.ListenAndServe(addr, nil)
 		if err != nil {
