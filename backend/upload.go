@@ -113,6 +113,11 @@ func unzipMod(zipUrl string) error {
 
 		path := filepath.Join(outDir, f.Name)
 
+		// Check for ZipSlip: https://snyk.io/research/zip-slip-vulnerability
+		if !strings.HasPrefix(path, filepath.Clean(outDir)+string(os.PathSeparator)) || strings.Contains(f.Name, "..") {
+			return fmt.Errorf("%s: illegal file path", path)
+		}
+
 		if f.FileInfo().IsDir() {
 			err = os.MkdirAll(path, 0755) // not using f.Mode() since it can cause a permission error
 			if err != nil {
