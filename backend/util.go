@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/pkg/browser"
 	"github.com/spf13/afero"
 	"log"
 	"os"
@@ -92,7 +93,7 @@ func getGameDirectory() (path string) {
 	return path
 }
 
-func hasSMAPI() (bool, error) {
+func HasSMAPI() (bool, error) {
 	smapiFolder := filepath.Join(getGameDirectory(), smapiSubfolder)
 	Sugar.Debug("checking for smapi at: ", smapiFolder)
 	return afero.Exists(AppFs, smapiFolder)
@@ -128,4 +129,10 @@ func isEnabled(dirName string) bool {
 		return false
 	}
 	return true
+}
+
+func UrlOpener(url string) func() error {
+	return func() error {
+		return browser.OpenURL(url)
+	}
 }

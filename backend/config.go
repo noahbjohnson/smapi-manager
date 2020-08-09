@@ -2,7 +2,6 @@ package backend
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -20,7 +19,7 @@ func initializeViper() (err error) {
 
 	defaultGameDir := getGameDirectory()
 
-	smapi, err := hasSMAPI()
+	smapi, err := HasSMAPI()
 	if err != nil {
 		return err
 	}
@@ -52,24 +51,9 @@ func initializeViper() (err error) {
 	return
 }
 
-// HasSMAPI returns if SMAPI is installed
-func HasSMAPI() bool {
-	return viper.GetBool(hasSmapiKey)
-}
-
 // GameDir returns the game dir from the config
 func GameDir() string {
 	return viper.GetString(gameDirKey)
-}
-
-func GetSMAPI(w http.ResponseWriter, r *http.Request) {
-	(w).Header().Set("Access-Control-Allow-Origin", "*")
-	var responseCode uint8 = 0
-	if HasSMAPI() {
-		responseCode = 1
-	}
-	Sugar.Infof("responding to smapi call with status %d", responseCode)
-	_, _ = fmt.Fprintf(w, "%d", responseCode)
 }
 
 func EnumerateMods(w http.ResponseWriter, r *http.Request) {
