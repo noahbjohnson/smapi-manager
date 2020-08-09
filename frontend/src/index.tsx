@@ -3,5 +3,8 @@ import * as ReactDOM from 'react-dom'
 import 'core-js/stable'
 import './index.css'
 import App from './App'
+import * as Wails from '@wailsapp/runtime'
 
-ReactDOM.render(<App/>, document.getElementById('app'))
+Wails.Init(() => {
+    ReactDOM.render(<App/>, document.getElementById('app'))
+})

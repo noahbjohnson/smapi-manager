@@ -65,8 +65,8 @@ func EnumerateMods(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Initialize sets up the config and such
-func Initialize() string {
+// InitializeConfig sets up the config and such
+func InitializeConfig() string {
 	log.Println("Initializing the logger")
 	logger, err := zap.NewDevelopment()
 	if err != nil {

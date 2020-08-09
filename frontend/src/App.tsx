@@ -9,18 +9,21 @@ interface bound {
     hasSmapi: () => Promise<boolean>
 }
 
-export const BoundFunction = window as unknown as bound
+export function BoundFunction() {
+    // @ts-ignore
+    return window.backend as unknown as bound
+}
 
 function App() {
     let [showSplash, setShowSplash] = useState<boolean>(true)
     let [splashMessage, setSplashMessage] = useState<FunctionComponentElement<any>>(<h3>Loading...</h3>)
 
     useEffect(() => {
-        BoundFunction.hasSmapi().then(smapiStatus => {
+        BoundFunction().hasSmapi().then(smapiStatus => {
             if (smapiStatus) {
                 setTimeout(() => setShowSplash(false), 1000)
             } else {
-                BoundFunction.openSmapiInstall().catch(r => {
+                BoundFunction().openSmapiInstall().catch(r => {
                     console.error(r)
                     setSplashMessage(<h3>Please <a
                         href={"https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Install_SMAPI"}>install

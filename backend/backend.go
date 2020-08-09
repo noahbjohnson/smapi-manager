@@ -1,12 +1,10 @@
 package backend
 
 import (
-	"github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
-	"github.com/webview/webview"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
+	"path/filepath"
 )
 
 const (
@@ -39,36 +37,36 @@ var (
 	AppFs = afero.NewOsFs()
 )
 
-func BindFunctions(wv webview.WebView) (err error) {
-	err = wv.Bind("openSmapiInstall", UrlOpener("https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Install_SMAPI"))
+func OpenSmapiInstall() error {
+	return UrlOpener("https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Install_SMAPI")()
+}
+
+func HasSMAPI() (bool, error) {
+	smapiFolder := filepath.Join(getGameDirectory(), smapiSubfolder)
+	Sugar.Debug("checking for smapi at: ", smapiFolder)
+	return afero.Exists(AppFs, smapiFolder)
+}
+
+func setupRoutes() error {
+	http.HandleFunc("/upload", UploadFile)
+	http.HandleFunc("/mods", EnumerateMods)
+	//http.Handle("/", http.FileServer(frontendFS))
+	return nil
+}
+
+// StartAPI sets up the api routes and starts API server in background
+func StartAPI(addr string) error {
+	err := setupRoutes()
 	if err != nil {
 		return err
 	}
-	err = wv.Bind("hasSmapi", HasSMAPI)
-	return err
-}
 
-func setupRoutes() {
-	statikFS, err := fs.New()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	http.HandleFunc("/upload", UploadFile)
-	http.HandleFunc("/mods", EnumerateMods)
-	http.Handle("/", http.FileServer(statikFS))
-}
-
-func StartAPI(addr string) {
-
-	Initialize()
-	setupRoutes()
-
-	// Start API server in background
 	go func() {
 		err := http.ListenAndServe(addr, nil)
 		if err != nil {
 			panic(err)
 		}
 	}()
+
+	return nil
 }

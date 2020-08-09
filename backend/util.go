@@ -93,12 +93,6 @@ func getGameDirectory() (path string) {
 	return path
 }
 
-func HasSMAPI() (bool, error) {
-	smapiFolder := filepath.Join(getGameDirectory(), smapiSubfolder)
-	Sugar.Debug("checking for smapi at: ", smapiFolder)
-	return afero.Exists(AppFs, smapiFolder)
-}
-
 func appendManifestFilePath(dir string) string {
 	return filepath.Join(dir, manifestFileName)
 }
