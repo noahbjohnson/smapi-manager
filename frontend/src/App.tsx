@@ -14,9 +14,22 @@ export function BoundFunction() {
     return window.backend as unknown as bound
 }
 
+
 function App() {
     let [showSplash, setShowSplash] = useState<boolean>(true)
     let [splashMessage, setSplashMessage] = useState<FunctionComponentElement<any>>(<h3>Loading...</h3>)
+
+    function installMessage(openedBrowser = false) {
+        setSplashMessage(<h3>Please {
+            openedBrowser
+                ? <a href={"https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Install_SMAPI"}>install
+                    SMAPI</a>
+                : <span> switch to your browser or <a
+                    href={"https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Install_SMAPI"}>click
+                    here</a> to install SMAPI</span>
+        }
+            and restart the application</h3>)
+    }
 
     useEffect(() => {
         BoundFunction().hasSmapi().then(smapiStatus => {
@@ -25,13 +38,9 @@ function App() {
             } else {
                 BoundFunction().openSmapiInstall().catch(r => {
                     console.error(r)
-                    setSplashMessage(<h3>Please <a
-                        href={"https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Install_SMAPI"}>install
-                        SMAPI</a> and restart the application</h3>)
+                    installMessage()
                 }).then(() => {
-                    setSplashMessage(<h3>Please switch to your browser or <a
-                        href={"https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Install_SMAPI"}>click
-                        here</a> to install SMAPI, and restart the application</h3>)
+                    installMessage(true)
                 })
             }
         })

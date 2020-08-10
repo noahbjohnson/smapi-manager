@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { useState } from 'react'
-import { Button } from 'rsuite'
+import { Button, ButtonToolbar, Drawer } from 'rsuite'
 import Dropzone from 'react-dropzone'
 import { uploadFile } from '../api'
 
 export default function () {
-  const [uploadQueue, setUploadQueue] = useState<File[]>([])
+  const [uploadQueue, setUploadQueue] = React.useState<File[]>([])
+  const [showDrawer, setDrawer] = React.useState(false)
 
   const uploadFiles = async (): Promise<void> => {
     await Promise.all(uploadQueue.map(file => {
@@ -40,25 +40,43 @@ export default function () {
 
   return (
     <div className="App">
-      <Dropzone onDrop={(acceptedFiles) => {
-        console.log('file dropped')
-        addToQueue(acceptedFiles)
-      }} accept={'.zip'}>
-        {({ getRootProps, getInputProps }) => (
-          <section>
-            <div {...getRootProps()}>
-              <input {...getInputProps()} />
-              <h1>Drag 'n' drop some files here, or click to select files</h1>
-            </div>
-          </section>
-        )}
-      </Dropzone>
-      {
-        uploadQueue.map((file, key) => {
-          return <p>{file.name}</p>
-        })
-      }
-      <Button onClick={uploadFiles}>Add Mod Files</Button>
+      <ButtonToolbar>
+        <Button onClick={() => setDrawer(!showDrawer)}>Add Mods</Button>
+      </ButtonToolbar>
+      <Drawer
+        show={showDrawer}
+        onHide={() => setDrawer(false)}
+        backdrop={'static'}
+      >
+        <Drawer.Header>
+          <Drawer.Title>Add Mod Files</Drawer.Title>
+        </Drawer.Header>
+        <Dropzone
+          onDrop={
+            (acceptedFiles) => {
+              addToQueue(acceptedFiles)
+            }
+          }
+          accept={'.zip'}>
+          {({ getRootProps, getInputProps }) => (
+            <section>
+              <div {...getRootProps()}>
+                <input {...getInputProps()} />
+                <h1>Drag 'n' drop some zip files here, or click to select.</h1>
+              </div>
+            </section>
+          )}
+        </Dropzone>
+        {
+          uploadQueue.map((file, key) => {
+            return <p>{file.name}</p>
+          })
+        }
+        <Drawer.Footer>
+          <Button onClick={uploadFiles} appearance="primary">Add Selected Mods</Button>
+          <Button onClick={() => setDrawer(false)} appearance="subtle">Cancel</Button>
+        </Drawer.Footer>
+      </Drawer>
     </div>
   )
 }
