@@ -19,7 +19,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/noahbjohnson/smapi-manager">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="appicon.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">SMAPI Mod Manager</h3>
@@ -29,12 +29,6 @@
     <br />
     <a href="https://github.com/noahbjohnson/smapi-manager"><strong>Explore the docs »</strong></a>
     <br />
-    <br />
-    <a href="https://github.com/noahbjohnson/smapi-manager">View Demo</a>
-    ·
-    <a href="https://github.com/noahbjohnson/smapi-manager/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/noahbjohnson/smapi-manager/issues">Request Feature</a>
   </p>
 </p>
 
@@ -60,9 +54,9 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This project is in early development.
+This project is in early development. Please see the roadmap for status updates.
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
 
 ### Built With
@@ -114,12 +108,10 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 See the [open issues](https://github.com/noahbjohnson/smapi-manager/issues) for a list of proposed features (and known issues).
 
-
-
 <!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Please open an issue or PR before diving in to prevent overlap.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -128,21 +120,19 @@ Contributions are what make the open source community such an amazing place to b
 5. Open a Pull Request
 
 
-
 <!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-
+The template for this readme is ©2018 Othneil Drew, also MIT Licensed
 
 <!-- CONTACT -->
 ## Contact
 
-Noah B Johnson - [@noahbj](https://twitter.com/noahbj) - noah@noahbjohnson.net
+Noah B Johnson - [@iamnoahbjohnson](https://twitter.com/iamnoahbjohnson) - noah@noahbjohnson.net
 
 Project Link: [https://github.com/noahbjohnson/smapi-manager](https://github.com/noahbjohnson/smapi-manager)
-
 
 
 <!-- ACKNOWLEDGEMENTS 
@@ -170,4 +160,4 @@ Project Link: [https://github.com/noahbjohnson/smapi-manager](https://github.com
 [license-url]: https://github.com/noahbjohnson/smapi-manager/blob/master/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/noahbjohnson
-[product-screenshot]: images/screenshot.png
+<!-- [product-screenshot]: images/screenshot.png -->
