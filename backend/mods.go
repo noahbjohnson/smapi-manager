@@ -10,7 +10,7 @@ import (
 )
 
 // For a content pack, ContentPackFor specifies which mod can read it.
-type ContactPackRef struct {
+type ContentPackRef struct {
 	UniqueID       string `json:"UniqueID"`
 	MinimumVersion string `json:"MinimumVersion"`
 }
@@ -45,7 +45,7 @@ type ModMetadata struct {
 	//  For a SMAPI mod, EntryDll is the mod's compiled DLL filename in its mod folder.
 	EntryDll string `json:"EntryDll"` // not present in content packs
 	// For a content pack, ContentPackFor specifies which mod can read it. The MinimumVersion is optional.
-	ContentPackFor ContactPackRef `json:"ContentPackFor"` // not present in mods
+	ContentPackFor ContentPackRef `json:"ContentPackFor"` // not present in mods
 	// The MinimumApiVersion fields sets the minimum SMAPI version needed to use this mod.
 	//  If a player tries to use the mod with an older SMAPI version, they'll see a friendly message
 	//  saying they need to update SMAPI. This also serves as a proxy for the minimum game version,

@@ -2,7 +2,7 @@ build: clean
 	wails build
 
 run: clean
-	go run main.go
+	wails serve
 
 clean:
 	rm -rf build/
@@ -12,7 +12,7 @@ lint:
 	cd frontend && npm run lint
 	go fmt
 
-compile:
+compile: clean
 	wails build -p
 	wails build -x linux/amd64 -p
 	wails build -x linux/arm-7 -p

@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { Button, ButtonToolbar, Drawer } from 'rsuite'
+import { Button, ButtonToolbar, Container, Content, Drawer, Header } from 'rsuite'
 import Dropzone from 'react-dropzone'
-import { uploadFile } from '../api'
+import { Mod, uploadFile } from '../api'
 
-export default function () {
+export default function (props: {mods: Mod[]}) {
   const [uploadQueue, setUploadQueue] = React.useState<File[]>([])
   const [showDrawer, setDrawer] = React.useState(false)
 
@@ -39,10 +39,20 @@ export default function () {
   }
 
   return (
-    <div className="App">
-      <ButtonToolbar>
-        <Button onClick={() => setDrawer(!showDrawer)}>Add Mods</Button>
-      </ButtonToolbar>
+    <Container>
+      <Header>
+        <ButtonToolbar>
+          <Button onClick={() => setDrawer(!showDrawer)}>Add Mods</Button>
+        </ButtonToolbar>
+      </Header>
+      <Content>
+        <div>
+          {props.mods.map((mod, n) => {
+            return <p key={n}>{mod.metadata.Name}</p>
+          })}
+        </div>
+      </Content>
+
       <Drawer
         show={showDrawer}
         onHide={() => setDrawer(false)}
@@ -77,6 +87,6 @@ export default function () {
           <Button onClick={() => setDrawer(false)} appearance="subtle">Cancel</Button>
         </Drawer.Footer>
       </Drawer>
-    </div>
+    </Container>
   )
 }

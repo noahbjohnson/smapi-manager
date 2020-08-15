@@ -33,6 +33,10 @@ func hasSmapi() (bool, error) {
 	return backend.HasSMAPI()
 }
 
+func loadMods() ([]backend.Mod, error) {
+	return backend.LoadMods(backend.GameDir()), nil
+}
+
 func main() {
 	// Load defaults and/or config file
 	backend.InitializeConfig()
@@ -51,6 +55,7 @@ func main() {
 
 	app.Bind(openSmapiInstall)
 	app.Bind(hasSmapi)
+	app.Bind(loadMods)
 
 	err = app.Run()
 }
